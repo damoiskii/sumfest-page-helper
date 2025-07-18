@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS Test</title>
+</head>
+<body>
+    <h1>CORS Test for Register Button API</h1>
+    
+    <div id="status">Testing...</div>
+    <div id="result"></div>
+    
+    <script>
+        // Test the local API with CORS
+        async function testCORS() {
+            const statusDiv = document.getElementById('status');
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                statusDiv.textContent = 'Testing CORS with local API...';
+                
+                // Test with the local API that has CORS fixed
+                const response = await fetch('http://localhost:3006/api/register-button-exists', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                statusDiv.textContent = '✅ CORS test successful!';
+                resultDiv.innerHTML = `
+                    <h2>API Response:</h2>
+                    <p><strong>Register button exists:</strong> ${result}</p>
+                    <p><strong>Status:</strong> CORS headers working correctly!</p>
+                `;
+                
+            } catch (error) {
+                statusDiv.textContent = '❌ CORS test failed';
+                resultDiv.innerHTML = `
+                    <h2>Error:</h2>
+                    <p style="color: red;">${error.message}</p>
+                    <p>Make sure the API server is running on localhost:3006</p>
+                `;
+                console.error('CORS test error:', error);
+            }
+        }
+        
+        // Run test when page loads
+        document.addEventListener('DOMContentLoaded', testCORS);
+    </script>
+</body>
+</html>

@@ -4,7 +4,7 @@ FROM node:18-alpine
 # Add metadata labels for Docker Hub
 LABEL maintainer="your-email@example.com"
 LABEL description="Register Button Checker API - Playwright-powered web scraping service"
-LABEL version="1.0.3"
+LABEL version="1.0.5"
 LABEL org.opencontainers.image.source="https://github.com/devdam16/register-button-api"
 LABEL org.opencontainers.image.description="API service to detect registration buttons on web pages using Playwright"
 LABEL org.opencontainers.image.licenses="MIT"

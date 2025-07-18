@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <!-- Phone Number Entry Tip - Only shown in Registration Mode -->
+    <div id="phone-tip" 
+        style="background-color: #daecff; border: 1px solid #007bff; padding: 15px; border-radius: 5px; font-size: 14px; color: black; margin-bottom: 1rem; display: none;">
+        <strong>📱 Phone Number Entry Tip:</strong><br />
+        <br />
+        ⚠️ When entering your phone number, <strong>do not include your country code or area code again</strong>. It
+        will be added automatically based on your selected country.<br />
+        <br />
+        ✅ <strong>Just enter your local number only.</strong><br />
+        <br />
+        <u>Examples:</u><br />
+        &bull; 🇯🇲 Jamaica: Enter <code class="code-class-rs">1234567</code> &rarr; We&#39;ll format it as <code
+            class="code-class-rs">+1 876 123-4567</code><br />
+        &bull; 🇺🇸 USA: Enter <code class="code-class-rs">3051234567</code> &rarr; We&#39;ll format it as <code
+            class="code-class-rs">+1 305 123 4567</code><br />
+        &bull; 🇬🇧 UK: Enter <code class="code-class-rs">7123456789</code> &rarr; We&#39;ll format it as <code
+            class="code-class-rs">+44 7123 456789</code><br />
+        <br />
+        ❌ <strong>Don&#39;t type</strong>: <code class="code-class-rs">+1</code>, <code
+            class="code-class-rs">+44</code>, or your area code again &mdash; it will result in a duplicate or invalid
+        number.
+    </div>
+
+    <!-- Camera/Selfie Tip - Only shown in Camera Mode -->
+    <div id="camera-tip" 
+        style="background-color: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 5px; font-size: 14px; color: #155724; margin-bottom: 1rem; display: none;">
+        <strong>📷 Selfie Upload Tips:</strong><br />
+        <br />
+        📸 <strong>For best results when uploading your selfie:</strong><br />
+        <br />
+        ✅ <strong>Make sure your face is clearly visible</strong><br />
+        ✅ <strong>Use good lighting (avoid shadows)</strong><br />
+        ✅ <strong>Look directly at the camera</strong><br />
+        ✅ <strong>Remove sunglasses or hats if possible</strong><br />
+        <br />
+        💡 <strong>Tip:</strong> The better your selfie quality, the more accurately we can find your photos from the event!
+    </div>
+
+    <style type="text/css">
+        .code-class-rs {
+            background-color: rgba(0, 123, 255, 0.1);
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+    </style>
+
+    <iframe id="MemzoInt" src="https://event.memzo.ai/m/reggae-sumfest/18088"
+        class="w-full border-none overflow-hidden mt-5 mb-5" style="height: calc(100vh - 60px); margin-bottom: 5rem;"
+        title="Get Your Photos">
+    </iframe>
+
+    <!-- Status Container for Messages -->
+    <div id="iframe-status" style="padding: 15px; border-radius: 5px; margin-bottom: 1rem; display: none;">
+        <div id="status-message"></div>
+    </div>
+
+    <!-- Manual Check Button for Testing -->
+    <div style="background-color: #f8f9fa; border: 1px solid #dee2e6; padding: 15px; border-radius: 5px; margin-bottom: 1rem; text-align: center;">
+        <button onclick="checkRegisterButtonAPI()" style="background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-right: 10px;">
+            🔍 Check Register Button Now
+        </button>
+        <button onclick="stopPeriodicCheck()" style="background-color: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-right: 10px;">
+            🛑 Stop Auto Check
+        </button>
+        <button onclick="startPeriodicCheck()" style="background-color: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+            ▶️ Start Auto Check
+        </button>
+    </div>
+
+    <script>
+        // Hardcoded variables to track current mode state
+        // These will be automatically updated by API calls
+        var isCameraModeActive = false;
+        var isRegistrationModeActive = false;
+        var isAutoModeActive = false; // Not used in API mode
+
+        // Function to display status messages
+        function showStatus(message, type = 'info') {
+            const statusContainer = document.getElementById('iframe-status');
+            const statusMessage = document.getElementById('status-message');
+            
+            // Check if elements exist
+            if (!statusContainer || !statusMessage) {
+                console.warn('Status container elements not found');
+                return;
+            }
+            
+            statusMessage.innerHTML = message;
+            statusContainer.style.display = 'block';
+            
+            // Set styling based on message type
+            switch(type) {
+                case 'success':
+                    statusContainer.style.backgroundColor = '#d4edda';
+                    statusContainer.style.borderColor = '#c3e6cb';
+                    statusContainer.style.color = '#155724';
+                    statusContainer.style.border = '1px solid #c3e6cb';
+                    break;
+                case 'error':
+                    statusContainer.style.backgroundColor = '#f8d7da';
+                    statusContainer.style.borderColor = '#f5c6cb';
+                    statusContainer.style.color = '#721c24';
+                    statusContainer.style.border = '1px solid #f5c6cb';
+                    break;
+                case 'warning':
+                    statusContainer.style.backgroundColor = '#fff3cd';
+                    statusContainer.style.borderColor = '#ffeaa7';
+                    statusContainer.style.color = '#856404';
+                    statusContainer.style.border = '1px solid #ffeaa7';
+                    break;
+                default: // info
+                    statusContainer.style.backgroundColor = '#d1ecf1';
+                    statusContainer.style.borderColor = '#b6d4db';
+                    statusContainer.style.color = '#0c5460';
+                    statusContainer.style.border = '1px solid #b6d4db';
+            }
+        }
+
+        // Function to reset all mode variables
+        function resetModeVariables() {
+            isCameraModeActive = false;
+            isRegistrationModeActive = false;
+            isAutoModeActive = false;
+        }
+
+        // Function to show/hide tips based on mode
+        function updateTipVisibility() {
+            const phoneTip = document.getElementById('phone-tip');
+            const cameraTip = document.getElementById('camera-tip');
+            
+            // Check if elements exist
+            if (!phoneTip || !cameraTip) {
+                console.warn('Tip elements not found');
+                return;
+            }
+            
+            // Hide all tips first
+            phoneTip.style.display = 'none';
+            cameraTip.style.display = 'none';
+            
+            // Show relevant tip based on active mode
+            if (isRegistrationModeActive) {
+                phoneTip.style.display = 'block';
+            } 
+            else if (isCameraModeActive) {
+                cameraTip.style.display = 'block';
+            }
+        }
+
+        // Function to show camera mode message
+        function showCameraMode() {
+            resetModeVariables();
+            isCameraModeActive = true;
+            updateTipVisibility();
+            
+            console.log('Camera Mode Variables:', {
+                isCameraModeActive: isCameraModeActive,
+                isRegistrationModeActive: isRegistrationModeActive,
+                isAutoModeActive: isAutoModeActive
+            });
+            
+            showStatus('📷 Camera Mode Active!<br/><small>You can upload a selfie to find your photos in the system.</small>', 'success');
+        }
+
+        // Function to show registration mode message
+        function showRegistrationMode() {
+            resetModeVariables();
+            isRegistrationModeActive = true;
+            updateTipVisibility();
+            
+            console.log('Registration Mode Variables:', {
+                isCameraModeActive: isCameraModeActive,
+                isRegistrationModeActive: isRegistrationModeActive,
+                isAutoModeActive: isAutoModeActive
+            });
+            
+            showStatus('📝 Registration Mode Active!<br/><small>You can register to get notified when event photos are ready.</small>', 'success');
+        }
+
+        // Function to show auto detection mode
+        function showAutoMode() {
+            resetModeVariables();
+            isAutoModeActive = true;
+            updateTipVisibility();
+            
+            console.log('Auto Mode Variables:', {
+                isCameraModeActive: isCameraModeActive,
+                isRegistrationModeActive: isRegistrationModeActive,
+                isAutoModeActive: isAutoModeActive
+            });
+            
+            showStatus('🔄 Auto Detection Mode<br/><small>Monitoring iframe for content changes...</small>', 'info');
+            // Simple iframe load detection
+            const iframe = document.getElementById('MemzoInt');
+            
+            // Remove any existing listeners to avoid duplicates
+            iframe.removeEventListener('load', handleAutoLoad);
+            iframe.addEventListener('load', handleAutoLoad);
+        }
+
+        function handleAutoLoad() {
+            setTimeout(() => {
+                showStatus('✅ Photo service loaded!<br/><small>Content should be visible below. Toggle mode above if needed.</small>', 'success');
+            }, 1000);
+        }
+
+        // Function to get current mode state (useful for external scripts)
+        function getCurrentModeState() {
+            return {
+                isCameraModeActive: isCameraModeActive,
+                isRegistrationModeActive: isRegistrationModeActive,
+                isAutoModeActive: isAutoModeActive
+            };
+        }
+
+        // Function to check if camera mode is active
+        function isCameraMode() {
+            return isCameraModeActive;
+        }
+
+        // Function to check if registration mode is active
+        function isRegistrationMode() {
+            return isRegistrationModeActive;
+        }
+
+        // Function to check if auto mode is active
+        function isAutoMode() {
+            return isAutoModeActive;
+        }
+
+        // API Integration - Function to check register button via API
+        async function checkRegisterButtonAPI() {
+            try {
+                showStatus('🔍 Checking for register button...', 'info');
+                
+                const response = await fetch('http://localhost:3000/api/register-button-exists');
+                
+                if (!response.ok) {
+                    throw new Error(`API request failed: ${response.status}`);
+                }
+                
+                const registerExists = await response.json();
+                
+                console.log('API Response - Register button exists:', registerExists);
+                
+                // Update mode based on API response
+                resetModeVariables();
+                
+                if (registerExists) {
+                    isRegistrationModeActive = true;
+                    updateTipVisibility();
+                    showStatus('📝 Registration Mode Detected!<br/><small>Register button found - you can register to get notified when photos are ready.</small>', 'success');
+                } else {
+                    isCameraModeActive = true;
+                    updateTipVisibility();
+                    showStatus('📷 Camera Mode Detected!<br/><small>No register button found - you can upload a selfie to find your photos.</small>', 'success');
+                }
+                
+                return registerExists;
+                
+            } catch (error) {
+                console.error('Error checking register button via API:', error);
+                
+                // Fallback to camera mode on error
+                resetModeVariables();
+                isCameraModeActive = true;
+                updateTipVisibility();
+                showStatus('⚠️ API Check Failed - Defaulting to Camera Mode<br/><small>Could not check register button status. Using camera mode as fallback.</small>', 'warning');
+                
+                return false;
+            }
+        }
+
+        // Function to start periodic checking
+        function startPeriodicCheck() {
+            // Initial check
+            checkRegisterButtonAPI();
+            
+            // Check every 30 seconds
+            const checkInterval = setInterval(async () => {
+                console.log('🔄 Performing periodic register button check...');
+                await checkRegisterButtonAPI();
+            }, 30000);
+            
+            // Store interval ID for potential cleanup
+            window.registerButtonCheckInterval = checkInterval;
+            
+            console.log('✅ Periodic register button checking started (every 30 seconds)');
+        }
+
+        // Function to stop periodic checking
+        function stopPeriodicCheck() {
+            if (window.registerButtonCheckInterval) {
+                clearInterval(window.registerButtonCheckInterval);
+                window.registerButtonCheckInterval = null;
+                console.log('🛑 Periodic register button checking stopped');
+            }
+        }
+
+        // Toggle functionality - removed since using hardcoded variables
+        // You can manually change the variables above to control mode:
+        // Set isCameraModeActive = true for camera mode
+        // Set isRegistrationModeActive = true for registration mode
+        // Set isAutoModeActive = true for auto mode
+
+        // Simple iframe monitoring for auto mode
+        function monitorIframe() {
+            const iframe = document.getElementById('MemzoInt');
+            
+            if (!iframe) {
+                console.warn('Iframe element not found');
+                return;
+            }
+            
+            iframe.addEventListener('load', function() {
+                if (isAutoModeActive) {
+                    setTimeout(() => {
+                        showStatus('✅ Photo service loaded successfully!<br/><small>Auto mode is active.</small>', 'success');
+                    }, 1500);
+                }
+            });
+
+            iframe.addEventListener('error', function() {
+                showStatus('❌ Failed to load photo service. Please check your internet connection.', 'error');
+            });
+        }
+
+        // Initialize the system
+        function init() {
+            monitorIframe();
+            
+            // Start API-based register button checking
+            startPeriodicCheck();
+            
+            console.log('✅ System initialized with API-based register button detection');
+        }
+
+        // Start everything when page loads
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+
+</body>
+
+</html>

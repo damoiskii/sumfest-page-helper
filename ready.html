@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    </ if (registerExists) { console.log('🔄 Switching to Registration Mode - Refreshing iframe...'); } else {
+        console.log('🔄 Switching to Camera Mode - Refreshing iframe...'); } <body>
+
+    <!-- Phone Number Entry Tip - Only shown in Registration Mode -->
+    <div id="phone-tip" class="tip-fade-in tip-hidden"
+        style="background-color: #daecff; border: 1px solid #007bff; padding: 15px; border-radius: 5px; font-size: 14px; color: black; margin-bottom: 1rem;">
+        <strong>📱 Phone Number Entry Tip:</strong><br />
+        <br />
+        ⚠️ When entering your phone number, <strong>do not include your country code or area code again</strong>. It
+        will be added automatically based on your selected country.<br />
+        <br />
+        ✅ <strong>Just enter your local number only.</strong><br />
+        <br />
+        <u>Examples:</u><br />
+        &bull; 🇯🇲 Jamaica: Enter <code class="code-class-rs">1234567</code> &rarr; We&#39;ll format it as <code
+            class="code-class-rs">+1 876 123-4567</code><br />
+        &bull; 🇺🇸 USA: Enter <code class="code-class-rs">3051234567</code> &rarr; We&#39;ll format it as <code
+            class="code-class-rs">+1 305 123 4567</code><br />
+        &bull; 🇬🇧 UK: Enter <code class="code-class-rs">7123456789</code> &rarr; We&#39;ll format it as <code
+            class="code-class-rs">+44 7123 456789</code><br />
+        <br />
+        ❌ <strong>Don&#39;t type</strong>: <code class="code-class-rs">+1</code>, <code
+            class="code-class-rs">+44</code>, or your area code again &mdash; it will result in a duplicate or invalid
+        number.
+    </div>
+
+    <!-- Camera/Selfie Tip - Only shown in Camera Mode -->
+    <div id="camera-tip" class="tip-fade-in tip-hidden"
+        style="background-color: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 5px; font-size: 14px; color: #155724; margin-bottom: 1rem;">
+        <strong>📷 Selfie Upload Tips:</strong><br />
+        <br />
+        📸 <strong>For best results when uploading your selfie:</strong><br />
+        <br />
+        ✅ <strong>Make sure your face is clearly visible</strong><br />
+        ✅ <strong>Use good lighting (avoid shadows)</strong><br />
+        ✅ <strong>Look directly at the camera</strong><br />
+        ✅ <strong>Remove sunglasses or hats if possible</strong><br />
+        <br />
+        💡 <strong>Tip:</strong> The better your selfie quality, the more accurately we can find your photos from the
+        event!
+    </div>
+
+    <style type="text/css">
+        .code-class-rs {
+            background-color: rgba(0, 123, 255, 0.1);
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        
+        /* Fade-in animation for tip elements */
+        .tip-fade-in {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        
+        .tip-fade-in.visible {
+            opacity: 1;
+        }
+        
+        .tip-hidden {
+            display: none;
+        }
+    </style>
+
+    <iframe id="MemzoInt" src="https://event.memzo.ai/m/reggae-sumfest/18088"
+        class="w-full border-none overflow-hidden mt-5 mb-5" style="height: calc(100vh - 60px); margin-bottom: 5rem;"
+        title="Get Your Photos">
+    </iframe>
+
+    <script>
+        const useAPI = true; // Set to true to use API for register button detection
+
+        // Hardcoded variables to track current mode state
+        // These will be automatically updated by API calls
+        /*var isCameraModeActive = false;
+        var isRegistrationModeActive = false;*/
+
+        var isCameraModeActive = false;
+        var isRegistrationModeActive = !isCameraModeActive;
+
+        // Variable to track the last known state to detect changes
+        let lastKnownRegistrationState = null;
+
+
+        // Function to reset all mode variables
+        function resetModeVariables() {
+            isCameraModeActive = false;
+            isRegistrationModeActive = false;
+        }
+
+        // Function to show/hide tips based on mode with fade-in animation
+        function updateTipVisibility() {
+            const phoneTip = document.getElementById('phone-tip');
+            const cameraTip = document.getElementById('camera-tip');
+
+            // Check if elements exist
+            if (!phoneTip || !cameraTip) {
+                console.warn('Tip elements not found');
+                return;
+            }
+
+            // Function to hide element with fade-out
+            function hideElement(element) {
+                element.classList.remove('visible');
+                setTimeout(() => {
+                    element.classList.add('tip-hidden');
+                }, 500); // Wait for fade-out to complete
+            }
+
+            // Function to show element with fade-in
+            function showElement(element) {
+                element.classList.remove('tip-hidden');
+                // Use requestAnimationFrame to ensure display change is applied before fade-in
+                requestAnimationFrame(() => {
+                    element.classList.add('visible');
+                });
+            }
+
+            // Hide all tips first
+            hideElement(phoneTip);
+            hideElement(cameraTip);
+
+            // Show relevant tip based on active mode with a slight delay
+            setTimeout(() => {
+                if (isRegistrationModeActive) {
+                    showElement(phoneTip);
+                    console.log('📱 Showing registration tip with fade-in');
+                } else if (isCameraModeActive) {
+                    showElement(cameraTip);
+                    console.log('📷 Showing camera tip with fade-in');
+                }
+            }, 600); // Slight delay to ensure previous tip has faded out
+        }
+
+        // Function to refresh iframe content
+        function refreshIframe() {
+            const iframe = document.getElementById('MemzoInt');
+            if (iframe) {
+                console.log('🔄 Refreshing iframe content...');
+
+                // Store the current src
+                const currentSrc = iframe.src;
+
+                // Temporarily clear src to force reload
+                iframe.src = '';
+
+                // Set src back after a brief delay to ensure reload
+                setTimeout(() => {
+                    iframe.src = currentSrc;
+                    console.log('✅ Iframe refreshed');
+                }, 100);
+            } else {
+                console.warn('Iframe element not found');
+            }
+        }
+
+
+        // API Calling
+        function apiCaller() {
+            // API Configuration
+            // const API_BASE_URL = 'http://localhost:3000';
+            const API_BASE_URL = 'https://register-button-api.onrender.com';
+            const API_ENDPOINT = '/api/register-button-exists';
+
+            // Helper function to update UI based on registration state
+            function updateUIForRegistrationState(registerExists) {
+                // Update mode based on API response
+                resetModeVariables();
+
+                if (registerExists) {
+                    isRegistrationModeActive = true;
+                    updateTipVisibility();
+                    console.log('📝 Registration Mode Active! Register button found.');
+                } else {
+                    isCameraModeActive = true;
+                    updateTipVisibility();
+                    console.log('📷 Camera Mode Active! No register button found.');
+                }
+            }
+
+            // API Integration - Function to check register button via API
+            async function checkRegisterButtonAPI() {
+                try {
+                    const apiUrl = `${API_BASE_URL}${API_ENDPOINT}`;
+                    console.log(`Making API request to: ${apiUrl}`);
+
+                    const response = await fetch(apiUrl, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        // Add timeout to prevent hanging
+                        signal: AbortSignal.timeout(30000) // 30 second timeout
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+                    }
+
+                    const registerExists = await response.json();
+
+                    console.log('API Response - Register button exists:', registerExists);
+
+                    // Check if state has changed since last check
+                    const stateChanged = lastKnownRegistrationState !== null && lastKnownRegistrationState !== registerExists;
+
+                    if (stateChanged) {
+                        console.log(`🔄 State change detected! Previous: ${lastKnownRegistrationState}, Current: ${registerExists}`);
+
+                        // Refresh iframe to show updated content
+                        refreshIframe();
+
+                        // Wait a moment for iframe to load, then update UI
+                        setTimeout(() => {
+                            updateUIForRegistrationState(registerExists);
+                        }, 2000);
+                    } else {
+                        // No state change, just update UI immediately
+                        updateUIForRegistrationState(registerExists);
+                    }
+
+                    // Update last known state
+                    lastKnownRegistrationState = registerExists;
+
+                    return registerExists;
+
+                } catch (error) {
+                    console.error('Error checking register button via API:', error);
+
+                    // Determine error type for better messaging
+                    let errorMessage = 'Could not check register button status.';
+                    if (error.name === 'TimeoutError') {
+                        errorMessage = 'API request timed out.';
+                    }
+                    else if (error.message.includes('Failed to fetch')) {
+                        errorMessage = 'Could not connect to API server. Make sure it\'s running.';
+                    }
+
+                    console.warn(`⚠️ API Check Failed - Auto-retrying in 5 seconds: ${errorMessage}`);
+
+                    // Auto-retry after 5 seconds on error
+                    setTimeout(() => {
+                        console.log('🔄 Auto-retrying API check...');
+                        checkRegisterButtonAPI();
+                    }, 5000);
+
+                    return false;
+                }
+            }
+
+            // Function to start periodic checking
+            function startPeriodicCheck() {
+                // Stop any existing interval first
+                stopPeriodicCheck();
+
+                // Initial check
+                checkRegisterButtonAPI();
+
+                // Check every 30 seconds
+                const checkInterval = setInterval(async () => {
+                    console.log('🔄 Performing periodic register button check...');
+                    await checkRegisterButtonAPI();
+                }, 60000);
+
+                // Store interval ID for potential cleanup
+                window.registerButtonCheckInterval = checkInterval;
+
+                console.log('✅ Periodic register button checking started (every 60 seconds)');
+            }
+
+            // Function to stop periodic checking
+            function stopPeriodicCheck() {
+                if (window.registerButtonCheckInterval) {
+                    clearInterval(window.registerButtonCheckInterval);
+                    window.registerButtonCheckInterval = null;
+                    console.log('🛑 Periodic register button checking stopped');
+                }
+            }
+
+            // startPeriodicCheck();
+
+            // Stop any existing interval first
+            stopPeriodicCheck();
+
+            // Initial check
+            checkRegisterButtonAPI();
+        }
+
+        // Initialize the system
+        function init() {
+            if (useAPI) {
+                resetModeVariables();
+
+                // Start API-based register button checking
+                apiCaller();
+            }
+            else {
+                updateTipVisibility();
+            }
+
+            console.log('✅ System initialized with API-based register button detection');
+        }
+
+        // Start everything when page loads
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+
+    </body>
+
+</html>

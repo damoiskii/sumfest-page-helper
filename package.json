@@ -1,0 +1,30 @@
+{
+  "name": "reggae-summest-code",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test-iframe.js",
+    "test-iframe": "node test-iframe.js",
+    "start": "node api-server.js",
+    "dev": "node api-server.js",
+    "docker:build": "docker build -t register-button-api .",
+    "docker:run": "docker run -p 3000:3000 --name register-button-api register-button-api",
+    "docker:stop": "docker stop register-button-api && docker rm register-button-api",
+    "docker:compose:up": "docker-compose up --build",
+    "docker:compose:down": "docker-compose down",
+    "docker:compose:logs": "docker-compose logs -f api-server",
+    "docker:deploy": "./deploy-docker-hub.sh",
+    "docker:prod:up": "docker-compose -f docker-compose.prod.yml up -d",
+    "docker:prod:down": "docker-compose -f docker-compose.prod.yml down",
+    "docker:prod:logs": "docker-compose -f docker-compose.prod.yml logs -f api-server"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^5.1.0",
+    "playwright": "^1.54.1"
+  }
+}
